@@ -1,0 +1,258 @@
+/* ==========================================================================
+   StoreHex Keyserver — Bootstrap 5.3 theme
+   --------------------------------------------------------------------------
+   Load AFTER bootstrap.min.css (v5.3+). This file only overrides Bootstrap's
+   CSS custom properties and the handful of components that bake literal
+   colors at build time — it does not reimplement Bootstrap components.
+   HexChat and the StoreHex "Lab" (repo/issue/comment/readme) styling from
+   the old theme has been removed; this is a single-purpose key server UI.
+
+   Usage: <html data-bs-theme="dark"> (or just rely on the root vars below —
+   they're set on :root directly so you don't strictly need the attribute,
+   but Bootstrap's own dark-mode-aware components look for it).
+   ========================================================================== */
+
+:root,
+[data-bs-theme="dark"] {
+  /* ---- StoreHex brand palette (source of truth) ---- */
+  --sx-brand: #3a9bdc;
+  --sx-brand-dark: #2a7ab8;
+  --sx-brand-dim: rgba(58, 155, 220, .12);
+  --sx-brand-glow: rgba(58, 155, 220, .25);
+  --sx-danger: #f85149;
+  --sx-success: #3fb950;
+  --sx-warning: #d29922;
+
+  /* ---- Bootstrap 5.3 root variables, remapped to the brand palette ---- */
+  --bs-body-bg: #0d1117;
+  --bs-body-color: #e6edf3;
+  --bs-emphasis-color: #ffffff;
+  --bs-secondary-color: #7d8590;
+  --bs-secondary-bg: #161b22;
+  --bs-tertiary-bg: #1c2330;
+  --bs-tertiary-color: #7d8590;
+  --bs-border-color: #30363d;
+  --bs-border-color-translucent: #21262d;
+
+  --bs-primary: var(--sx-brand);
+  --bs-primary-rgb: 58, 155, 220;
+  --bs-danger: var(--sx-danger);
+  --bs-danger-rgb: 248, 81, 73;
+  --bs-success: var(--sx-success);
+  --bs-success-rgb: 63, 185, 80;
+  --bs-warning: var(--sx-warning);
+  --bs-warning-rgb: 210, 153, 34;
+
+  --bs-link-color: var(--sx-brand);
+  --bs-link-color-rgb: 58, 155, 220;
+  --bs-link-hover-color: var(--sx-brand-dark);
+  --bs-link-hover-color-rgb: 42, 122, 184;
+  --bs-focus-ring-color: var(--sx-brand-glow);
+
+  --bs-code-color: #e06c75;
+
+  /* "Subtle" tokens (Bootstrap 5.3) — drives text-bg-*-subtle, alerts, etc. */
+  --bs-primary-bg-subtle: var(--sx-brand-dim);
+  --bs-primary-border-subtle: rgba(58, 155, 220, .3);
+  --bs-primary-text-emphasis: #7cc4ec;
+  --bs-success-bg-subtle: rgba(63, 185, 80, .12);
+  --bs-success-border-subtle: rgba(63, 185, 80, .3);
+  --bs-success-text-emphasis: var(--sx-success);
+  --bs-danger-bg-subtle: rgba(248, 81, 73, .12);
+  --bs-danger-border-subtle: rgba(248, 81, 73, .3);
+  --bs-danger-text-emphasis: var(--sx-danger);
+  --bs-warning-bg-subtle: rgba(210, 153, 34, .12);
+  --bs-warning-border-subtle: rgba(210, 153, 34, .3);
+  --bs-warning-text-emphasis: var(--sx-warning);
+  --bs-secondary-bg-subtle: var(--bs-tertiary-bg);
+  --bs-secondary-border-subtle: var(--bs-border-color);
+
+  --bs-border-radius: .5rem;
+  --bs-border-radius-sm: .375rem;
+  --bs-border-radius-lg: .75rem;
+  --bs-border-radius-xl: 1rem;
+  --bs-box-shadow: 0 8px 24px rgba(0, 0, 0, .4);
+
+  --bs-font-sans-serif: 'Inter', system-ui, -apple-system, sans-serif;
+  --bs-font-monospace: 'JetBrains Mono', SFMono-Regular, Menlo, monospace;
+}
+
+body { font-size: 14px; }
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bs-body-bg); }
+::-webkit-scrollbar-thumb { background: var(--bs-border-color); border-radius: 3px; }
+
+/* ==========================================================================
+   Components that bake literal colors at Sass build time and therefore need
+   an explicit override even though the root variables above are set.
+   ========================================================================== */
+
+.btn-primary {
+  --bs-btn-color: #fff;
+  --bs-btn-bg: var(--sx-brand);
+  --bs-btn-border-color: var(--sx-brand);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: var(--sx-brand-dark);
+  --bs-btn-hover-border-color: var(--sx-brand-dark);
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: var(--sx-brand-dark);
+  --bs-btn-active-border-color: var(--sx-brand-dark);
+  --bs-btn-disabled-bg: var(--sx-brand);
+  --bs-btn-disabled-border-color: var(--sx-brand);
+  --bs-btn-focus-shadow-rgb: 58, 155, 220;
+}
+
+.btn-outline-primary {
+  --bs-btn-color: var(--sx-brand);
+  --bs-btn-border-color: var(--sx-brand);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: var(--sx-brand);
+  --bs-btn-hover-border-color: var(--sx-brand);
+  --bs-btn-active-bg: var(--sx-brand);
+  --bs-btn-active-border-color: var(--sx-brand);
+  --bs-btn-focus-shadow-rgb: 58, 155, 220;
+  --bs-gradient: none;
+}
+
+.btn-outline-danger {
+  --bs-btn-color: var(--sx-danger);
+  --bs-btn-border-color: var(--sx-danger);
+  --bs-btn-hover-bg: var(--sx-danger);
+  --bs-btn-hover-border-color: var(--sx-danger);
+}
+
+.form-control,
+.form-select {
+  background-color: var(--bs-tertiary-bg);
+  border-color: var(--bs-border-color);
+  color: var(--bs-body-color);
+}
+.form-control:focus,
+.form-select:focus {
+  background-color: var(--bs-tertiary-bg);
+  border-color: var(--sx-brand);
+  color: var(--bs-body-color);
+  box-shadow: 0 0 0 .25rem var(--sx-brand-glow);
+}
+.form-control::placeholder { color: var(--bs-tertiary-color); }
+
+.nav-pills { --bs-nav-pills-link-active-bg: var(--sx-brand); }
+.pagination { --bs-pagination-active-bg: var(--sx-brand); --bs-pagination-active-border-color: var(--sx-brand); }
+.progress-bar { background-color: var(--sx-brand); }
+.form-check-input:checked { background-color: var(--sx-brand); border-color: var(--sx-brand); }
+.form-switch .form-check-input:checked { background-color: var(--sx-brand); border-color: var(--sx-brand); }
+
+.modal-content { box-shadow: 0 8px 32px rgba(0, 0, 0, .5); }
+.modal-backdrop.show { --bs-backdrop-opacity: .7; }
+
+.dropdown-menu {
+  --bs-dropdown-bg: var(--bs-secondary-bg);
+  --bs-dropdown-border-color: var(--bs-border-color);
+  --bs-dropdown-link-color: var(--bs-body-color);
+  --bs-dropdown-link-hover-bg: var(--bs-tertiary-bg);
+  --bs-dropdown-link-active-bg: var(--sx-brand);
+}
+
+.table {
+  --bs-table-bg: transparent;
+  --bs-table-hover-bg: var(--bs-tertiary-bg);
+  --bs-table-border-color: var(--bs-border-color-translucent);
+}
+.table > thead {
+  --bs-table-bg: var(--bs-tertiary-bg);
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: .06em;
+  color: var(--bs-secondary-color);
+}
+
+.toast { --bs-toast-bg: var(--bs-secondary-bg); --bs-toast-border-color: var(--bs-border-color); --bs-toast-box-shadow: 0 8px 24px rgba(0,0,0,.4); }
+
+/* ==========================================================================
+   StoreHex-specific pieces Bootstrap has no equivalent for.
+   Everything below is genuinely custom UI, not a component override.
+   ========================================================================== */
+
+/* Monospace treatment for key IDs / fingerprints */
+.sx-mono {
+  font-family: var(--bs-font-monospace);
+  font-size: .85em;
+  letter-spacing: .02em;
+  word-break: break-all;
+}
+
+/* Sign-in / server-config screen backdrop */
+.sx-auth-bg {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(ellipse 60% 40% at 50% 0%, var(--sx-brand-glow) 0%, transparent 70%),
+    var(--bs-body-bg);
+}
+
+/* Square brand mark shown on the login card / navbar */
+.sx-brand-mark {
+  width: 48px;
+  height: 48px;
+  background: var(--sx-brand);
+  border-radius: .625rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  color: #fff;
+}
+.sx-brand-mark-sm { width: 30px; height: 30px; font-size: 14px; border-radius: .5rem; }
+
+/* Stat cards on the dashboard (keys issued / verified / pending) */
+.sx-stat-card { transition: border-color .15s; }
+.sx-stat-card:hover { border-color: var(--sx-brand); }
+.sx-stat-num {
+  font-size: 26px;
+  font-weight: 700;
+  font-family: var(--bs-font-monospace);
+  line-height: 1;
+}
+
+/* Result panel shown after a successful key lookup */
+.sx-key-hero {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.sx-key-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--sx-brand);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  font-weight: 700;
+  color: #fff;
+  border: 3px solid var(--sx-brand-dark);
+  flex-shrink: 0;
+}
+
+/* Empty / not-found state */
+.sx-empty { text-align: center; padding: 48px 20px; color: var(--bs-secondary-color); }
+.sx-empty .bi { font-size: 40px; color: var(--bs-tertiary-color); margin-bottom: 12px; display: block; }
+
+/* Inline loading row (used inside buttons/results while an AJAX call is in flight) */
+.sx-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 32px;
+  color: var(--bs-secondary-color);
+  font-size: 13px;
+}
+
+@media (max-width: 768px) {
+  .sx-key-hero { flex-direction: column; text-align: center; }
+}
