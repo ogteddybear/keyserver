@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="dark" data-api-base="/api/v1/key">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
@@ -7,9 +7,31 @@
     <meta name="author" content="KawaiiNET">
     <title>StoreHex Key Server</title>
     <link rel="stylesheet" href="/css/bootstrap.min.css">
-    <link rel="stylesheet" href="/css/jumbotron-narrow.css">
+    <link rel="stylesheet" href="/css/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://fonts.storehex.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+    <!-- StoreHex brand overrides — must load after bootstrap.min.css -->
+    <link rel="stylesheet" href="/css/keyserver-theme.css">
   </head>
   <body>
-    <%- content %>
+
+    <nav class="navbar border-bottom" style="background:var(--bs-secondary-bg)">
+      <div class="container-fluid px-4">
+        <a class="navbar-brand d-flex align-items-center gap-2 fw-bold" href="/">
+          <span class="sx-brand-mark sx-brand-mark-sm">
+            <i class="bi bi-shield-lock-fill"></i>
+          </span>
+          StoreHex Keys
+        </a>
+      </div>
+    </nav>
+
+    <main class="container py-5" style="max-width:760px">
+      <%- content %>
+    </main>
+
+    <div id="sx-toast-container" class="toast-container position-fixed bottom-0 end-0 p-3"></div>
+
+    <script src="/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/keyserver.js"></script>
   </body>
 </html>
