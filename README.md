@@ -1,4 +1,4 @@
-Mailvelope Keyserver
+StoreHex Keyserver (based on Mailvelope Keyserver)
 ====================
 
 A simple OpenPGP public key server that validates email address ownership of uploaded keys.
@@ -23,7 +23,7 @@ The idea is that an identity provider such as an email provider can host their o
 
 # Demo
 
-Try out the server here: [https://keys.mailvelope.com](https://keys.mailvelope.com)
+Try out the server here: [https://keys.storehex.com](https://keys.storehex.com)
 
 # API
 
@@ -54,7 +54,7 @@ The HKP APIs are not documented here. Please refer to the [HKP specification](ht
 #### Usage example with GnuPG
 
 ```
-gpg --keyserver hkps://keys.mailvelope.com --search  info@mailvelope.com
+gpg --keyserver hkps://keys.storehex.com --search  info@mailvelope.com
 ```
 
 ## REST API
@@ -132,7 +132,7 @@ POST /api/v1/key
 
 E.g. to upload a key from shell:
 ```bash
-curl https://keys.mailvelope.com/api/v1/key --data "{\"publicKeyArmored\":\"$( \
+curl https://keys.storehex.com/api/v1/key --data "{\"publicKeyArmored\":\"$( \
   gpg --armor --export-options export-minimal --export $GPGKEYID | sed ':a;N;$!ba;s/\n/\\n/g' \
   )\"}" 
 ```
@@ -340,7 +340,7 @@ The following variables are available to customize the filtering behavior as out
 
 The key server uses [nodemailer](https://nodemailer.com) to send out emails upon public key upload to verify email address ownership. To test this feature locally, configure `SMTP_USER` and `SMTP_PASS` settings to your email test account. Make sure that `SMTP_USER` and `SENDER_EMAIL` match.
 
-For production you should use a service like [Amazon SES](https://aws.amazon.com/ses/), [Mailgun](https://www.mailgun.com/) or [Sendgrid](https://sendgrid.com/use-cases/transactional-email/). Nodemailer supports all of these out of the box.
+For production you should use a service like [Zoho ZeptoMail](https://www.zoho.com/zeptomail/), [Amazon SES](https://aws.amazon.com/ses/), [Mailgun](https://www.mailgun.com/) or [Sendgrid](https://sendgrid.com/use-cases/transactional-email/). Nodemailer supports all of these out of the box.
 
 ### Docker compose
 
@@ -372,7 +372,7 @@ npm start
 
 AGPL v3.0
 
-See the [LICENSE](https://raw.githubusercontent.com/mailvelope/keyserver/master/LICENSE) file for details
+See the [LICENSE](https://raw.githubusercontent.com/ogteddybear/keyserver/master/LICENSE) file for details
 
 ## Libraries
 
