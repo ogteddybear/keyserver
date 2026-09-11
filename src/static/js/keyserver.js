@@ -1,23 +1,8 @@
-/**
- * StoreHex Keyserver — AJAX front-end
- * -----------------------------------------------------------------------
- * Talks to the fork's REST API:
- *   GET    /api/v1/key?email=...|keyId=...|fingerprint=...
- *   POST   /api/v1/key            { publicKeyArmored }
- *   DELETE /api/v1/key?email=...|keyId=...
- *
- * Expects Bootstrap 5.3's JS bundle to already be loaded (for the Toast
- * component). No other dependencies.
- */
 (function () {
   'use strict';
 
   const API_BASE = document.documentElement.dataset.apiBase || '/api/v1/key';
   const STATS_ENDPOINT = document.documentElement.dataset.apiStats || '/api/v1/stats';
-
-  // ---------------------------------------------------------------------
-  // Small helpers
-  // ---------------------------------------------------------------------
 
   function escapeHtml(str) {
     const div = document.createElement('div');
@@ -25,7 +10,6 @@
     return div.innerHTML;
   }
 
-  /** Toggles a button into/out of a Bootstrap spinner-border loading state. */
   function setButtonLoading(button, isLoading, loadingText) {
     if (!button) return;
     if (isLoading) {
@@ -40,7 +24,6 @@
     }
   }
 
-  /** Shows/hides a block-level loading placeholder (spinner + label) inside a container. */
   function setContainerLoading(container, isLoading, label) {
     if (!container) return;
     if (isLoading) {
@@ -68,7 +51,6 @@
       '</div>';
     holder.appendChild(el);
 
-    // Bootstrap's JS bundle exposes bootstrap.Toast; fall back to a manual timeout if absent.
     if (window.bootstrap && window.bootstrap.Toast) {
       const toast = new window.bootstrap.Toast(el, { delay: 5000 });
       el.addEventListener('hidden.bs.toast', () => el.remove());
@@ -79,13 +61,11 @@
     }
   }
 
-  /** Classifies a free-text identifier as an email, fingerprint, or key ID for the REST API. */
   function identifierToParams(raw) {
     const value = raw.trim().replace(/^0x/i, '');
     if (value.includes('@')) return { email: value };
     if (/^[0-9a-f]{40}$/i.test(value)) return { fingerprint: value };
     if (/^[0-9a-f]{16}$/i.test(value)) return { keyId: value };
-    // Fall back to email — the API will 400/404 with a clear message either way.
     return { email: value };
   }
 
@@ -113,10 +93,6 @@
     return data;
   }
 
-  // ---------------------------------------------------------------------
-  // Stats fetching (server returns { ok:true, now, stats: {...} })
-  // ---------------------------------------------------------------------
-
   async function fetchStats() {
     const url = new URL(STATS_ENDPOINT, window.location.origin);
     const res = await fetch(url.toString(), { method: 'GET' });
@@ -129,20 +105,14 @@
       err.status = res.status;
       throw err;
     }
-    // Normalize: if server returns { ok, stats }, return stats with now
     if (data && data.stats) return { ...data.stats, now: data.now || new Date().toISOString() };
     return { ...data, now: new Date().toISOString() };
   }
 
-  // ---------------------------------------------------------------------
-  // Status rendering (tile UI with icons + pulse-on-change)
-  // ---------------------------------------------------------------------
   let __sx_lastStats = null;
 
   function renderStatus(container, stats) {
     if (!container) return;
-
-    // store previous values for pulse detection
     const prev = __sx_lastStats || {};
     __sx_lastStats = stats;
 
@@ -154,10 +124,10 @@
             <small class="text-secondary">Updated ${escapeHtml(new Date(stats.now || Date.now()).toLocaleTimeString())}</small>
           </div>
 
-          <div class="row g-2">
-            <div class="col-6 col-sm-4 col-md-2">
-              <div class="d-flex align-items-center gap-3 p-2 rounded bg-white shadow-sm sx-status-tile" data-key="totalKeys">
-                <i class="bi bi-key-fill text-primary" style="font-size:1.4rem"></i>
+          <div class="row g-3 align-items-stretch">
+            <div class="col-6 col-sm-4 col-md-2 d-flex">
+              <div class="flex-fill d-flex align-items-center gap-3 rounded sx-status-tile" data-key="totalKeys">
+                <i class="bi bi-key-fill text-primary" aria-hidden="true"></i>
                 <div>
                   <div class="small text-secondary">Total keys</div>
                   <div class="fw-bold sx-mono sx-status-val">${escapeHtml(stats.totalKeys)}</div>
@@ -165,9 +135,9 @@
               </div>
             </div>
 
-            <div class="col-6 col-sm-4 col-md-2">
-              <div class="d-flex align-items-center gap-3 p-2 rounded bg-white shadow-sm sx-status-tile" data-key="keysWithVerified">
-                <i class="bi bi-shield-check text-success" style="font-size:1.4rem"></i>
+            <div class="col-6 col-sm-4 col-md-2 d-flex">
+              <div class="flex-fill d-flex align-items-center gap-3 rounded sx-status-tile" data-key="keysWithVerified">
+                <i class="bi bi-shield-check text-success" aria-hidden="true"></i>
                 <div>
                   <div class="small text-secondary">Keys w/ verified</div>
                   <div class="fw-bold sx-mono sx-status-val">${escapeHtml(stats.keysWithVerified)}</div>
@@ -175,9 +145,9 @@
               </div>
             </div>
 
-            <div class="col-6 col-sm-4 col-md-2">
-              <div class="d-flex align-items-center gap-3 p-2 rounded bg-white shadow-sm sx-status-tile" data-key="totalUserIds">
-                <i class="bi bi-people-fill text-info" style="font-size:1.4rem"></i>
+            <div class="col-6 col-sm-4 col-md-2 d-flex">
+              <div class="flex-fill d-flex align-items-center gap-3 rounded sx-status-tile" data-key="totalUserIds">
+                <i class="bi bi-people-fill text-info" aria-hidden="true"></i>
                 <div>
                   <div class="small text-secondary">User IDs</div>
                   <div class="fw-bold sx-mono sx-status-val">${escapeHtml(stats.totalUserIds)}</div>
@@ -185,9 +155,9 @@
               </div>
             </div>
 
-            <div class="col-6 col-sm-4 col-md-2">
-              <div class="d-flex align-items-center gap-3 p-2 rounded bg-white shadow-sm sx-status-tile" data-key="totalVerifiedUserIds">
-                <i class="bi bi-person-check text-success" style="font-size:1.4rem"></i>
+            <div class="col-6 col-sm-4 col-md-2 d-flex">
+              <div class="flex-fill d-flex align-items-center gap-3 rounded sx-status-tile" data-key="totalVerifiedUserIds">
+                <i class="bi bi-person-check text-success" aria-hidden="true"></i>
                 <div>
                   <div class="small text-secondary">Verified UIDs</div>
                   <div class="fw-bold sx-mono sx-status-val">${escapeHtml(stats.totalVerifiedUserIds)}</div>
@@ -195,9 +165,9 @@
               </div>
             </div>
 
-            <div class="col-6 col-sm-4 col-md-2">
-              <div class="d-flex align-items-center gap-3 p-2 rounded bg-white shadow-sm sx-status-tile" data-key="totalUnverifiedUserIds">
-                <i class="bi bi-person-x text-warning" style="font-size:1.4rem"></i>
+            <div class="col-6 col-sm-4 col-md-2 d-flex">
+              <div class="flex-fill d-flex align-items-center gap-3 rounded sx-status-tile" data-key="totalUnverifiedUserIds">
+                <i class="bi bi-person-x text-warning" aria-hidden="true"></i>
                 <div>
                   <div class="small text-secondary">Unverified UIDs</div>
                   <div class="fw-bold sx-mono sx-status-val">${escapeHtml(stats.totalUnverifiedUserIds)}</div>
@@ -215,7 +185,6 @@
       </div>
     `;
 
-    // pulse tiles whose numeric value has changed
     try {
       const tiles = container.querySelectorAll('.sx-status-tile');
       tiles.forEach(tile => {
@@ -224,15 +193,11 @@
         const oldVal = prev && prev[key];
         if (oldVal !== undefined && String(oldVal) !== String(newVal)) {
           tile.classList.add('sx-pulse');
-          // remove class after animation ends
           setTimeout(() => tile.classList.remove('sx-pulse'), 1000);
         }
       });
-    } catch (e) {
-      // ignore
-    }
+    } catch (e) {}
 
-    // wire up manual refresh button (keeps auto-refresh)
     const refreshBtn = container.querySelector('#sx-refresh-stats');
     if (refreshBtn) {
       refreshBtn.addEventListener('click', async (e) => {
@@ -268,7 +233,6 @@
   function initStatus() {
     const container = document.getElementById('sx-status');
     if (!container) return;
-    // initial load + periodic refresh
     async function loadAndRender() {
       try {
         setStatusLoading(container, true);
@@ -285,13 +249,8 @@
       }
     }
     loadAndRender();
-    // refresh every 60s (adjust if needed)
     setInterval(loadAndRender, 60000);
   }
-
-  // ---------------------------------------------------------------------
-  // Lookup: GET /api/v1/key?email=...
-  // ---------------------------------------------------------------------
 
   function renderKeyResult(container, key) {
     const initials = (key.userIds?.[0]?.name || key.userIds?.[0]?.email || '?')
@@ -386,10 +345,6 @@
     });
   }
 
-  // ---------------------------------------------------------------------
-  // Upload: POST /api/v1/key
-  // ---------------------------------------------------------------------
-
   function initUploadForm() {
     const form = document.getElementById('sx-upload-form');
     if (!form) return;
@@ -413,10 +368,6 @@
       }
     });
   }
-
-  // ---------------------------------------------------------------------
-  // Removal request: DELETE /api/v1/key?email=... or ?keyId=...
-  // ---------------------------------------------------------------------
 
   function initRemoveForm() {
     const form = document.getElementById('sx-remove-form');
