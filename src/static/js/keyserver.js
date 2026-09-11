@@ -127,7 +127,7 @@
 
         <div class="row g-3 align-items-stretch">
           <!-- tile: Total keys -->
-          <div class="col-6 col-sm-4 col-md-2 d-flex">
+          <div class="col-12 col-sm-6 col-lg-4 d-flex">
             <div class="card sx-status-tile h-100 w-100 border flex-fill">
               <div class="card-body d-flex gap-3 align-items-center p-3">
                 <i class="bi bi-key-fill text-primary fs-3" aria-hidden="true"></i>
@@ -140,7 +140,7 @@
           </div>
 
           <!-- tile: Keys with verified -->
-          <div class="col-6 col-sm-4 col-md-2 d-flex">
+          <div class="col-12 col-sm-6 col-lg-4 d-flex">
             <div class="card sx-status-tile h-100 w-100 border flex-fill">
               <div class="card-body d-flex gap-3 align-items-center p-3">
                 <i class="bi bi-shield-check text-success fs-3" aria-hidden="true"></i>
@@ -153,7 +153,7 @@
           </div>
 
           <!-- tile: User IDs -->
-          <div class="col-6 col-sm-4 col-md-2 d-flex">
+          <div class="col-12 col-sm-6 col-lg-4 d-flex">
             <div class="card sx-status-tile h-100 w-100 border flex-fill">
               <div class="card-body d-flex gap-3 align-items-center p-3">
                 <i class="bi bi-people-fill text-info fs-3" aria-hidden="true"></i>
@@ -166,7 +166,7 @@
           </div>
 
           <!-- tile: Verified UIDs -->
-          <div class="col-6 col-sm-4 col-md-2 d-flex">
+          <div class="col-12 col-sm-6 col-lg-4 d-flex">
             <div class="card sx-status-tile h-100 w-100 border flex-fill">
               <div class="card-body d-flex gap-3 align-items-center p-3">
                 <i class="bi bi-person-check text-success fs-3" aria-hidden="true"></i>
@@ -179,7 +179,7 @@
           </div>
 
           <!-- tile: Unverified UIDs -->
-          <div class="col-6 col-sm-4 col-md-2 d-flex">
+          <div class="col-12 col-sm-6 col-lg-4 d-flex">
             <div class="card sx-status-tile h-100 w-100 border flex-fill">
               <div class="card-body d-flex gap-3 align-items-center p-3">
                 <i class="bi bi-person-x text-warning fs-3" aria-hidden="true"></i>
@@ -192,7 +192,7 @@
           </div>
 
           <!-- manual refresh -->
-          <div class="col-6 col-sm-4 col-md-2 d-flex align-items-center">
+          <div class="col-12 col-sm-6 col-lg-4 d-flex align-items-center">
             <div class="w-100 d-flex justify-content-end">
               <button id="sx-refresh-stats" class="btn btn-outline-secondary btn-sm">
                 <i class="bi bi-arrow-clockwise"></i> Refresh
