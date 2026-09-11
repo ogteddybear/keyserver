@@ -102,6 +102,64 @@ class REST {
     const {email} = await this._publicKey.verifyRemove({keyId, nonce});
     return h.view('removal-success', {email});
   }
+
+  /**
+   * Service status endpoint
+   * Returns basic service information (uptime, baseUrl, timestamp)
+   */
+  async status(request, h) {
+    const uptime = process.uptime();
+    const now = new Date().toISOString();
+    return h.response({
+      ok: true,
+      service: 'keyserver',
+      baseUrl: this._baseUrl,
+      uptime_seconds: Math.floor(uptime),
+      now
+    }).code(200).type('application/json');
+  }
+
+  /**
+   * Statistics endpoint
+   * Returns simple counts about keys and user IDs. This implementation
+   * fetches all publickey documents and aggregates counts in-memory.
+   * For very large databases you should replace this with an aggregation
+   * query inside the mongo module.
+   */
+  async stats(request, h) {
+    // access the underlying mongo module via publicKey (internal helper)
+    const mongo = this._publicKey._mongo;
+    if (!mongo) {
+      return Boom.badImplementation('Database module unavailable');
+    }
+
+    const docs = await mongo.list({}, 'publickey');
+    const totalKeys = docs.length;
+    let keysWithVerified = 0;
+    let totalUserIds = 0;
+    let totalVerifiedUserIds = 0;
+
+    for (const doc of docs) {
+      const uids = doc.userIds || [];
+      totalUserIds += uids.length;
+      const verifiedInDoc = uids.filter(u => u.verified).length;
+      if (verifiedInDoc > 0) keysWithVerified += 1;
+      totalVerifiedUserIds += verifiedInDoc;
+    }
+
+    const totalUnverifiedUserIds = totalUserIds - totalVerifiedUserIds;
+
+    return h.response({
+      ok: true,
+      stats: {
+        totalKeys,
+        keysWithVerified,
+        totalUserIds,
+        totalVerifiedUserIds,
+        totalUnverifiedUserIds
+      }
+    }).code(200).type('application/json');
+  }
 }
 
 exports.plugin = {
@@ -143,6 +201,21 @@ exports.plugin = {
       method: 'DELETE',
       path: '/api/v1/key',
       handler: rest.remove,
+      options: routeOptions
+    });
+
+    // New endpoints: status and stats
+    server.route({
+      method: 'GET',
+      path: '/api/v1/status',
+      handler: rest.status,
+      options: routeOptions
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/api/v1/stats',
+      handler: rest.stats,
       options: routeOptions
     });
   }
