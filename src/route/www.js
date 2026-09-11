@@ -38,5 +38,18 @@ exports.plugin = {
       },
       options: routeOptions
     });
+
+    // Render the upload page using the configured layout.
+    // The template file should be placed at src/view/views/upload.html
+    // and is referenced here as 'views/upload' because server.views() points
+    // at src/view as the base directory for templates.
+    server.route({
+      method: 'GET',
+      path: '/upload.html',
+      handler: {
+        view: 'views/upload'
+      },
+      options: routeOptions
+    });
   }
 };
