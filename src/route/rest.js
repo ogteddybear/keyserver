@@ -20,6 +20,8 @@ class REST {
   constructor(publicKey, baseUrl) {
     this._publicKey = publicKey;
     this._baseUrl = baseUrl;
+    // simple in-memory cache for stats to reduce DB load
+    this._statsCache = { value: null, expires: 0, ttl: 30 * 1000 };
   }
 
   /**
@@ -120,45 +122,63 @@ class REST {
   }
 
   /**
-   * Statistics endpoint
-   * Returns simple counts about keys and user IDs. This implementation
-   * fetches all publickey documents and aggregates counts in-memory.
-   * For very large databases you should replace this with an aggregation
-   * query inside the mongo module.
+   * Statistics endpoint using MongoDB aggregation and simple in-memory caching
    */
   async stats(request, h) {
-    // access the underlying mongo module via publicKey (internal helper)
+    const nowMs = Date.now();
+    if (this._statsCache.value && this._statsCache.expires > nowMs) {
+      return h.response(this._statsCache.value).code(200).type('application/json');
+    }
+
     const mongo = this._publicKey._mongo;
     if (!mongo) {
       return Boom.badImplementation('Database module unavailable');
     }
 
-    const docs = await mongo.list({}, 'publickey');
-    const totalKeys = docs.length;
-    let keysWithVerified = 0;
-    let totalUserIds = 0;
-    let totalVerifiedUserIds = 0;
+    try {
+      // total keys: count documents
+      const totalKeys = await mongo.count({}, 'publickey');
+      // keysWithVerified: documents with at least one verified user id
+      const keysWithVerified = await mongo.count({'userIds.verified': true}, 'publickey');
 
-    for (const doc of docs) {
-      const uids = doc.userIds || [];
-      totalUserIds += uids.length;
-      const verifiedInDoc = uids.filter(u => u.verified).length;
-      if (verifiedInDoc > 0) keysWithVerified += 1;
-      totalVerifiedUserIds += verifiedInDoc;
+      // aggregate to get totalUserIds and totalVerifiedUserIds efficiently
+      const pipeline = [
+        { $unwind: { path: '$userIds', preserveNullAndEmptyArrays: true } },
+        { $group: {
+          _id: null,
+          totalUserIds: { $sum: { $cond: [ { $ifNull: ['$userIds', false] }, 1, 0 ] } },
+          totalVerifiedUserIds: { $sum: { $cond: [ '$userIds.verified', 1, 0 ] } }
+        } }
+      ];
+
+      const cursor = mongo.aggregate(pipeline, 'publickey');
+      const rows = await cursor.toArray();
+      const agg = rows && rows[0] ? rows[0] : { totalUserIds: 0, totalVerifiedUserIds: 0 };
+
+      const totalUserIds = agg.totalUserIds || 0;
+      const totalVerifiedUserIds = agg.totalVerifiedUserIds || 0;
+      const totalUnverifiedUserIds = totalUserIds - totalVerifiedUserIds;
+
+      const payload = {
+        ok: true,
+        now: new Date().toISOString(),
+        stats: {
+          totalKeys,
+          keysWithVerified,
+          totalUserIds,
+          totalVerifiedUserIds,
+          totalUnverifiedUserIds
+        }
+      };
+
+      // cache result
+      this._statsCache.value = payload;
+      this._statsCache.expires = Date.now() + this._statsCache.ttl;
+
+      return h.response(payload).code(200).type('application/json');
+    } catch (e) {
+      return Boom.badImplementation('Failed to compute stats');
     }
-
-    const totalUnverifiedUserIds = totalUserIds - totalVerifiedUserIds;
-
-    return h.response({
-      ok: true,
-      stats: {
-        totalKeys,
-        keysWithVerified,
-        totalUserIds,
-        totalVerifiedUserIds,
-        totalUnverifiedUserIds
-      }
-    }).code(200).type('application/json');
   }
 }
 
