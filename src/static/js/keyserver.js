@@ -1,7 +1,7 @@
 /**
  * StoreHex Keyserver — AJAX front-end
  * -----------------------------------------------------------------------
- * Talks to the fork's REST API (unchanged from upstream mailvelope/keyserver):
+ * Talks to the fork's REST API:
  *   GET    /api/v1/key?email=...|keyId=...|fingerprint=...
  *   POST   /api/v1/key            { publicKeyArmored }
  *   DELETE /api/v1/key?email=...|keyId=...
@@ -114,43 +114,140 @@
   }
 
   // ---------------------------------------------------------------------
-  // Status / Stats: GET /api/v1/stats
+  // Stats fetching (server returns { ok:true, now, stats: {...} })
   // ---------------------------------------------------------------------
+
+  async function fetchStats() {
+    const url = new URL(STATS_ENDPOINT, window.location.origin);
+    const res = await fetch(url.toString(), { method: 'GET' });
+    const text = await res.text();
+    let data = null;
+    if (text) { try { data = JSON.parse(text); } catch (_) { data = null; } }
+    if (!res.ok) {
+      const message = (data && (data.message || data.error)) || res.statusText || 'Failed to fetch stats';
+      const err = new Error(message);
+      err.status = res.status;
+      throw err;
+    }
+    // Normalize: if server returns { ok, stats }, return stats with now
+    if (data && data.stats) return { ...data.stats, now: data.now || new Date().toISOString() };
+    return { ...data, now: new Date().toISOString() };
+  }
+
+  // ---------------------------------------------------------------------
+  // Status rendering (tile UI with icons + pulse-on-change)
+  // ---------------------------------------------------------------------
+  let __sx_lastStats = null;
+
   function renderStatus(container, stats) {
     if (!container) return;
-    // A Bootstrap card matching the existing theme
+
+    // store previous values for pulse detection
+    const prev = __sx_lastStats || {};
+    __sx_lastStats = stats;
+
     container.innerHTML = `
       <div class="card bg-body-secondary border">
         <div class="card-body">
-          <h5 class="mb-3">Service status</h5>
-          <div class="row g-3 align-items-center">
-            <div class="col-6 col-md-2">
-              <div class="text-secondary small">Total keys</div>
-              <div class="sx-mono h5 mb-0">${escapeHtml(stats.totalKeys)}</div>
+          <div class="d-flex align-items-center mb-3">
+            <h5 class="mb-0 me-3">Service status</h5>
+            <small class="text-secondary">Updated ${escapeHtml(new Date(stats.now || Date.now()).toLocaleTimeString())}</small>
+          </div>
+
+          <div class="row g-2">
+            <div class="col-6 col-sm-4 col-md-2">
+              <div class="d-flex align-items-center gap-3 p-2 rounded bg-white shadow-sm sx-status-tile" data-key="totalKeys">
+                <i class="bi bi-key-fill text-primary" style="font-size:1.4rem"></i>
+                <div>
+                  <div class="small text-secondary">Total keys</div>
+                  <div class="fw-bold sx-mono sx-status-val">${escapeHtml(stats.totalKeys)}</div>
+                </div>
+              </div>
             </div>
-            <div class="col-6 col-md-2">
-              <div class="text-secondary small">Keys w/ verified</div>
-              <div class="sx-mono h5 mb-0">${escapeHtml(stats.keysWithVerified)}</div>
+
+            <div class="col-6 col-sm-4 col-md-2">
+              <div class="d-flex align-items-center gap-3 p-2 rounded bg-white shadow-sm sx-status-tile" data-key="keysWithVerified">
+                <i class="bi bi-shield-check text-success" style="font-size:1.4rem"></i>
+                <div>
+                  <div class="small text-secondary">Keys w/ verified</div>
+                  <div class="fw-bold sx-mono sx-status-val">${escapeHtml(stats.keysWithVerified)}</div>
+                </div>
+              </div>
             </div>
-            <div class="col-6 col-md-2">
-              <div class="text-secondary small">User IDs</div>
-              <div class="sx-mono h5 mb-0">${escapeHtml(stats.totalUserIds)}</div>
+
+            <div class="col-6 col-sm-4 col-md-2">
+              <div class="d-flex align-items-center gap-3 p-2 rounded bg-white shadow-sm sx-status-tile" data-key="totalUserIds">
+                <i class="bi bi-people-fill text-info" style="font-size:1.4rem"></i>
+                <div>
+                  <div class="small text-secondary">User IDs</div>
+                  <div class="fw-bold sx-mono sx-status-val">${escapeHtml(stats.totalUserIds)}</div>
+                </div>
+              </div>
             </div>
-            <div class="col-6 col-md-2">
-              <div class="text-secondary small">Verified UIDs</div>
-              <div class="sx-mono h5 mb-0">${escapeHtml(stats.totalVerifiedUserIds)}</div>
+
+            <div class="col-6 col-sm-4 col-md-2">
+              <div class="d-flex align-items-center gap-3 p-2 rounded bg-white shadow-sm sx-status-tile" data-key="totalVerifiedUserIds">
+                <i class="bi bi-person-check text-success" style="font-size:1.4rem"></i>
+                <div>
+                  <div class="small text-secondary">Verified UIDs</div>
+                  <div class="fw-bold sx-mono sx-status-val">${escapeHtml(stats.totalVerifiedUserIds)}</div>
+                </div>
+              </div>
             </div>
-            <div class="col-6 col-md-2">
-              <div class="text-secondary small">Unverified UIDs</div>
-              <div class="sx-mono h5 mb-0">${escapeHtml(stats.totalUnverifiedUserIds)}</div>
+
+            <div class="col-6 col-sm-4 col-md-2">
+              <div class="d-flex align-items-center gap-3 p-2 rounded bg-white shadow-sm sx-status-tile" data-key="totalUnverifiedUserIds">
+                <i class="bi bi-person-x text-warning" style="font-size:1.4rem"></i>
+                <div>
+                  <div class="small text-secondary">Unverified UIDs</div>
+                  <div class="fw-bold sx-mono sx-status-val">${escapeHtml(stats.totalUnverifiedUserIds)}</div>
+                </div>
+              </div>
             </div>
-            <div class="col-12 col-md-2 text-md-end">
-              <div class="text-secondary small">Updated</div>
-              <div class="h6 mb-0">${escapeHtml(new Date(stats.now || Date.now()).toLocaleTimeString())}</div>
+
+            <div class="col-6 col-sm-4 col-md-2 d-flex align-items-center">
+              <button id="sx-refresh-stats" class="btn btn-outline-secondary btn-sm ms-auto">
+                <i class="bi bi-arrow-clockwise"></i> Refresh
+              </button>
             </div>
           </div>
         </div>
-      </div> `;
+      </div>
+    `;
+
+    // pulse tiles whose numeric value has changed
+    try {
+      const tiles = container.querySelectorAll('.sx-status-tile');
+      tiles.forEach(tile => {
+        const key = tile.dataset.key;
+        const newVal = stats && stats[key];
+        const oldVal = prev && prev[key];
+        if (oldVal !== undefined && String(oldVal) !== String(newVal)) {
+          tile.classList.add('sx-pulse');
+          // remove class after animation ends
+          setTimeout(() => tile.classList.remove('sx-pulse'), 1000);
+        }
+      });
+    } catch (e) {
+      // ignore
+    }
+
+    // wire up manual refresh button (keeps auto-refresh)
+    const refreshBtn = container.querySelector('#sx-refresh-stats');
+    if (refreshBtn) {
+      refreshBtn.addEventListener('click', async (e) => {
+        refreshBtn.disabled = true;
+        refreshBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>Refreshing…';
+        try {
+          const result = await fetchStats();
+          renderStatus(container, result);
+        } catch (err) {
+          console.error('Manual refresh failed', err);
+        } finally {
+          setTimeout(() => { refreshBtn.disabled = false; refreshBtn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Refresh'; }, 600);
+        }
+      });
+    }
   }
 
   function setStatusLoading(container, isLoading) {
@@ -166,23 +263,6 @@
           </div>
         </div>`;
     }
-  }
-
-  async function fetchStats() {
-    const url = new URL(STATS_ENDPOINT, window.location.origin);
-    const res = await fetch(url.toString(), { method: 'GET' });
-    const text = await res.text();
-    let data = null;
-    if (text) { try { data = JSON.parse(text); } catch (_) { data = null; } }
-    if (!res.ok) {
-      const message = (data && (data.message || data.error)) || res.statusText || 'Failed to fetch stats';
-      const err = new Error(message);
-      err.status = res.status;
-      throw err;
-    }
-    // Keep compatibility: if server returns { ok: true, stats: {...}, now: ... }
-    if (data && data.stats) return { ...data.stats, now: data.now || new Date().toISOString() };
-    return { ...data, now: new Date().toISOString() };
   }
 
   function initStatus() {
