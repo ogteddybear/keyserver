@@ -47,7 +47,7 @@ exports.plugin = {
       method: 'GET',
       path: '/upload.html',
       handler: {
-        view: 'views/upload'
+        view: 'upload'
       },
       options: routeOptions
     });
