@@ -1,0 +1,376 @@
+<nav class="nav nav-pills justify-content-end mb-4">
+  <a class="nav-link" href="/">Home</a>
+  <a class="nav-link" href="/manage.html">Manage Keys</a>
+  <a class="nav-link active" aria-current="page" href="/upload.html">Batch Upload</a>
+  <a class="nav-link" href="https://github.com/ogteddybear/keyserver" target="_blank" rel="noopener">GitHub</a>
+</nav>
+
+<section id="batchUpload" class="mb-5">
+  <h2 class="h4 mb-3">Batch OpenPGP key upload</h2>
+  <p class="text-secondary">
+    Drop several ASCII-armored keys at once, or a single file containing multiple key blocks.
+    Each key is submitted in the order it was added — watch the counter below to track progress.
+  </p>
+
+  <div id="sxDropzone" class="sx-dropzone mb-3" role="button" tabindex="0" aria-label="Add key files">
+    <i class="bi bi-cloud-arrow-up sx-dropzone-icon"></i>
+    <div class="fw-semibold">Drag key files here, or click to browse</div>
+    <div class="text-secondary small mt-1">.asc, .pgp, .gpg, .key, .txt &middot; multiple files accepted</div>
+    <input type="file" id="sxFileInput" class="d-none" multiple accept=".asc,.pgp,.gpg,.key,.txt">
+  </div>
+
+  <div class="sx-status-bar mb-3">
+    <div class="sx-status-count">
+      <span id="sxCountDone">0</span><span class="text-secondary">/</span><span id="sxCountTotal">0</span>
+      <div class="text-secondary small">keys processed</div>
+    </div>
+    <div class="flex-grow-1">
+      <div class="progress" role="progressbar" aria-label="Upload progress" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="height:6px">
+        <div class="progress-bar" id="sxProgressBar" style="width:0%"></div>
+      </div>
+      <div class="d-flex justify-content-between mt-1">
+        <span class="text-secondary small" id="sxStatusText">Waiting for files</span>
+        <span class="text-secondary small"><span id="sxCountRemaining">0</span> remaining</span>
+      </div>
+    </div>
+    <button type="button" class="btn btn-primary" id="sxStartBtn" disabled>Upload all</button>
+  </div>
+
+  <div id="sxQueue" class="d-flex flex-column gap-2"></div>
+  <p id="sxEmptyNote" class="text-secondary small text-center py-3 mb-0">No keys queued yet.</p>
+
+  <div class="mt-3 d-flex justify-content-end">
+    <button type="button" class="btn btn-outline-secondary btn-sm" id="sxClearBtn">Clear queue</button>
+  </div>
+</section>
+
+<style>
+  .sx-dropzone{
+    border:1.5px dashed var(--bs-border-color);
+    border-radius:.5rem;
+    background:var(--bs-secondary-bg);
+    padding:3rem 1.5rem;
+    text-align:center;
+    cursor:pointer;
+    transition:border-color .15s ease, background-color .15s ease;
+  }
+  .sx-dropzone:hover,
+  .sx-dropzone:focus-visible{
+    border-color:var(--bs-primary);
+  }
+  .sx-dropzone.sx-dragover{
+    border-color:var(--bs-primary);
+    background:rgba(var(--bs-primary-rgb), .08);
+  }
+  .sx-dropzone-icon{
+    display:block;
+    font-size:1.75rem;
+    color:var(--bs-primary);
+    margin-bottom:.5rem;
+  }
+
+  .sx-status-bar{
+    display:flex;
+    align-items:center;
+    gap:1rem;
+    padding:.9rem 1.1rem;
+    background:var(--bs-secondary-bg);
+    border:1px solid var(--bs-border-color);
+    border-radius:.5rem;
+  }
+  .sx-status-count{
+    font-family:"JetBrains Mono", monospace;
+    font-size:1.35rem;
+    font-weight:600;
+    min-width:4.5ch;
+    text-align:center;
+  }
+
+  .sx-queue-item{
+    display:flex;
+    align-items:center;
+    gap:.75rem;
+    padding:.65rem .9rem;
+    background:var(--bs-secondary-bg);
+    border:1px solid var(--bs-border-color);
+    border-left-width:3px;
+    border-radius:.375rem;
+  }
+  .sx-queue-item[data-state="pending"]{ border-left-color:var(--bs-border-color); }
+  .sx-queue-item[data-state="processing"]{ border-left-color:var(--bs-warning); }
+  .sx-queue-item[data-state="success"]{ border-left-color:var(--bs-success); }
+  .sx-queue-item[data-state="error"]{ border-left-color:var(--bs-danger); }
+
+  .sx-queue-icon{ flex:none; width:1.1rem; text-align:center; }
+  .sx-queue-item[data-state="pending"] .sx-queue-icon{ color:var(--bs-secondary-color); }
+  .sx-queue-item[data-state="processing"] .sx-queue-icon{ color:var(--bs-warning); animation:sx-spin .9s linear infinite; }
+  .sx-queue-item[data-state="success"] .sx-queue-icon{ color:var(--bs-success); }
+  .sx-queue-item[data-state="error"] .sx-queue-icon{ color:var(--bs-danger); }
+  @keyframes sx-spin{ to{ transform:rotate(360deg); } }
+
+  .sx-queue-body{ min-width:0; flex:1; }
+  .sx-queue-filename{
+    font-family:"JetBrains Mono", monospace;
+    font-size:.85rem;
+    font-weight:600;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .sx-queue-detail{
+    font-size:.8rem;
+    color:var(--bs-secondary-color);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .sx-queue-item[data-state="error"] .sx-queue-detail{ color:var(--bs-danger); }
+</style>
+
+<script>
+(function(){
+  "use strict";
+
+  var API_BASE = document.documentElement.dataset.apiBase || "/api/v1/key";
+
+  var dropzone   = document.getElementById("sxDropzone");
+  var fileInput  = document.getElementById("sxFileInput");
+  var queueEl    = document.getElementById("sxQueue");
+  var emptyNote  = document.getElementById("sxEmptyNote");
+  var startBtn   = document.getElementById("sxStartBtn");
+  var clearBtn   = document.getElementById("sxClearBtn");
+  var countDone  = document.getElementById("sxCountDone");
+  var countTotal = document.getElementById("sxCountTotal");
+  var countRemaining = document.getElementById("sxCountRemaining");
+  var progressBar = document.getElementById("sxProgressBar");
+  var statusText = document.getElementById("sxStatusText");
+  var toastContainer = document.getElementById("sx-toast-container");
+
+  var queue = [];
+  var isProcessing = false;
+  var idSeq = 0;
+
+  var ICONS = {
+    pending: "bi-circle",
+    processing: "bi-arrow-repeat",
+    success: "bi-check-circle-fill",
+    error: "bi-x-circle-fill"
+  };
+
+  var KEY_BLOCK_RE = /-----BEGIN PGP PUBLIC KEY BLOCK-----[\s\S]*?-----END PGP PUBLIC KEY BLOCK-----/g;
+  var UID_EMAIL_RE = /<([^<>@\s]+@[^<>@\s]+)>/;
+
+  function extractEmail(armoredKey){
+    var match = armoredKey.match(UID_EMAIL_RE);
+    return match ? match[1] : null;
+  }
+
+  function splitKeyBlocks(text){
+    var matches = text.match(KEY_BLOCK_RE);
+    return matches && matches.length ? matches : [];
+  }
+
+  function escapeHtml(str){
+    var div = document.createElement("div");
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function showToast(message, variant){
+    if (!toastContainer) return;
+    var el = document.createElement("div");
+    el.className = "toast align-items-center text-bg-" + (variant || "secondary") + " border-0";
+    el.setAttribute("role", "status");
+    el.innerHTML =
+      '<div class="d-flex">' +
+        '<div class="toast-body">' + escapeHtml(message) + '</div>' +
+        '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>' +
+      '</div>';
+    toastContainer.appendChild(el);
+    if (window.bootstrap && window.bootstrap.Toast){
+      new window.bootstrap.Toast(el, { delay: 5000 }).show();
+      el.addEventListener("hidden.bs.toast", function(){ el.remove(); });
+    } else {
+      setTimeout(function(){ el.remove(); }, 5000);
+    }
+  }
+
+  function addFilesToQueue(fileList){
+    var files = Array.prototype.slice.call(fileList);
+    var pending = files.map(function(file){
+      return file.text().then(function(text){
+        var blocks = splitKeyBlocks(text);
+        if (!blocks.length){
+          queue.push({
+            id: ++idSeq,
+            filename: file.name,
+            armoredKey: null,
+            state: "error",
+            detail: "No PGP public key block found in this file"
+          });
+          return;
+        }
+        blocks.forEach(function(block, index){
+          var label = blocks.length > 1 ? file.name + " (key " + (index + 1) + " of " + blocks.length + ")" : file.name;
+          queue.push({
+            id: ++idSeq,
+            filename: label,
+            armoredKey: block,
+            state: "pending",
+            detail: "Waiting"
+          });
+        });
+      });
+    });
+
+    Promise.all(pending).then(function(){
+      renderQueue();
+      updateCounters();
+    });
+  }
+
+  function renderQueue(){
+    if (!queue.length){
+      queueEl.innerHTML = "";
+      emptyNote.style.display = "block";
+      startBtn.disabled = true;
+      return;
+    }
+    emptyNote.style.display = "none";
+    startBtn.disabled = isProcessing || !queue.some(function(item){ return item.state === "pending"; });
+
+    queueEl.innerHTML = queue.map(function(item){
+      return (
+        '<div class="sx-queue-item" data-state="' + item.state + '" data-id="' + item.id + '">' +
+          '<i class="sx-queue-icon bi ' + ICONS[item.state] + '"></i>' +
+          '<div class="sx-queue-body">' +
+            '<div class="sx-queue-filename">' + escapeHtml(item.filename) + '</div>' +
+            '<div class="sx-queue-detail">' + escapeHtml(item.detail) + '</div>' +
+          '</div>' +
+        '</div>'
+      );
+    }).join("");
+  }
+
+  function updateCounters(){
+    var total = queue.length;
+    var done = queue.filter(function(i){ return i.state === "success" || i.state === "error"; }).length;
+    var remaining = total - done;
+    var pct = total ? Math.round((done / total) * 100) : 0;
+
+    countDone.textContent = done;
+    countTotal.textContent = total;
+    countRemaining.textContent = remaining;
+    progressBar.style.width = pct + "%";
+
+    if (!total){
+      statusText.textContent = "Waiting for files";
+    } else if (isProcessing){
+      statusText.textContent = "Uploading key " + Math.min(done + 1, total) + " of " + total;
+    } else if (remaining === 0){
+      statusText.textContent = "Done";
+    } else {
+      statusText.textContent = total + " key" + (total === 1 ? "" : "s") + " queued";
+    }
+  }
+
+  function setItemState(item, state, detail){
+    item.state = state;
+    item.detail = detail;
+    renderQueue();
+    updateCounters();
+  }
+
+  async function uploadKey(item){
+    setItemState(item, "processing", "Uploading\u2026");
+    try{
+      var email = extractEmail(item.armoredKey);
+      var payload = { publicKeyArmored: item.armoredKey };
+      if (email) payload.primaryEmail = email;
+
+      var res = await fetch(API_BASE, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok){
+        setItemState(item, "success", email ? "Verification email sent to " + email : "Uploaded successfully");
+      } else {
+        var message = "Server returned " + res.status;
+        try {
+          var data = await res.json();
+          if (data && (data.message || data.error)) message = data.message || data.error;
+        } catch(e) { /* body wasn't JSON */ }
+        setItemState(item, "error", message);
+      }
+    } catch(err){
+      setItemState(item, "error", "Network error: " + err.message);
+    }
+  }
+
+  async function processQueue(){
+    if (isProcessing) return;
+    isProcessing = true;
+    startBtn.disabled = true;
+    updateCounters();
+
+    for (var i = 0; i < queue.length; i++){
+      var item = queue[i];
+      if (item.state !== "pending") continue;
+      await uploadKey(item);
+    }
+
+    isProcessing = false;
+    renderQueue();
+    updateCounters();
+
+    var succeeded = queue.filter(function(i){ return i.state === "success"; }).length;
+    var failed = queue.filter(function(i){ return i.state === "error"; }).length;
+    showToast(succeeded + " uploaded, " + failed + " failed", failed ? "warning" : "success");
+  }
+
+  dropzone.addEventListener("click", function(){ fileInput.click(); });
+  dropzone.addEventListener("keydown", function(e){
+    if (e.key === "Enter" || e.key === " "){ e.preventDefault(); fileInput.click(); }
+  });
+
+  ["dragenter", "dragover"].forEach(function(evt){
+    dropzone.addEventListener(evt, function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      dropzone.classList.add("sx-dragover");
+    });
+  });
+  ["dragleave", "drop"].forEach(function(evt){
+    dropzone.addEventListener(evt, function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      dropzone.classList.remove("sx-dragover");
+    });
+  });
+  dropzone.addEventListener("drop", function(e){
+    var files = e.dataTransfer.files;
+    if (files && files.length) addFilesToQueue(files);
+  });
+
+  fileInput.addEventListener("change", function(){
+    if (fileInput.files && fileInput.files.length) addFilesToQueue(fileInput.files);
+    fileInput.value = "";
+  });
+
+  startBtn.addEventListener("click", processQueue);
+
+  clearBtn.addEventListener("click", function(){
+    if (isProcessing) return;
+    queue = [];
+    renderQueue();
+    updateCounters();
+  });
+
+  renderQueue();
+  updateCounters();
+})();
+</script>
+
+<%- include('footer.html') %>
