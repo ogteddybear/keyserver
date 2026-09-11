@@ -1,0 +1,27 @@
+{
+  "name": "StoreHex Key Server",
+  "short_name": "StoreHex Keys",
+  "description": "An OpenPGP public key server that verifies users by sending an encrypted verification email.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#182333",
+  "theme_color": "#182333",
+  "lang": "en",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "/favicon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
