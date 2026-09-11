@@ -112,108 +112,132 @@
   let __sx_lastStats = null;
 
   function renderStatus(container, stats) {
-    if (!container) return;
-    const prev = __sx_lastStats || {};
-    __sx_lastStats = stats;
+  if (!container) return;
 
-    container.innerHTML = `
-      <div class="card bg-body-secondary border">
-        <div class="card-body">
-          <div class="d-flex align-items-center mb-3">
-            <h5 class="mb-0 me-3">Service status</h5>
-            <small class="text-secondary">Updated ${escapeHtml(new Date(stats.now || Date.now()).toLocaleTimeString())}</small>
-          </div>
+  const prev = __sx_lastStats || {};
+  __sx_lastStats = stats;
 
-          <div class="row g-3 align-items-stretch">
-            <div class="col-6 col-sm-4 col-md-2 d-flex">
-              <div class="flex-fill d-flex align-items-center gap-3 rounded sx-status-tile" data-key="totalKeys">
-                <i class="bi bi-key-fill text-primary" aria-hidden="true"></i>
+  container.innerHTML = `
+    <div class="card bg-body-secondary border">
+      <div class="card-body">
+        <div class="d-flex align-items-center mb-3">
+          <h5 class="mb-0 me-3">Service status</h5>
+          <small class="text-secondary">Updated ${escapeHtml(new Date(stats.now || Date.now()).toLocaleTimeString())}</small>
+        </div>
+
+        <div class="row g-3 align-items-stretch">
+          <!-- tile: Total keys -->
+          <div class="col-6 col-sm-4 col-md-2 d-flex">
+            <div class="card sx-status-tile h-100 w-100 border flex-fill">
+              <div class="card-body d-flex gap-3 align-items-center p-3">
+                <i class="bi bi-key-fill text-primary fs-3" aria-hidden="true"></i>
                 <div>
                   <div class="small text-secondary">Total keys</div>
-                  <div class="fw-bold sx-mono sx-status-val">${escapeHtml(stats.totalKeys)}</div>
+                  <div class="fw-bold sx-mono sx-stat-num">${escapeHtml(stats.totalKeys)}</div>
                 </div>
               </div>
             </div>
+          </div>
 
-            <div class="col-6 col-sm-4 col-md-2 d-flex">
-              <div class="flex-fill d-flex align-items-center gap-3 rounded sx-status-tile" data-key="keysWithVerified">
-                <i class="bi bi-shield-check text-success" aria-hidden="true"></i>
+          <!-- tile: Keys with verified -->
+          <div class="col-6 col-sm-4 col-md-2 d-flex">
+            <div class="card sx-status-tile h-100 w-100 border flex-fill">
+              <div class="card-body d-flex gap-3 align-items-center p-3">
+                <i class="bi bi-shield-check text-success fs-3" aria-hidden="true"></i>
                 <div>
                   <div class="small text-secondary">Keys w/ verified</div>
-                  <div class="fw-bold sx-mono sx-status-val">${escapeHtml(stats.keysWithVerified)}</div>
+                  <div class="fw-bold sx-mono sx-stat-num">${escapeHtml(stats.keysWithVerified)}</div>
                 </div>
               </div>
             </div>
+          </div>
 
-            <div class="col-6 col-sm-4 col-md-2 d-flex">
-              <div class="flex-fill d-flex align-items-center gap-3 rounded sx-status-tile" data-key="totalUserIds">
-                <i class="bi bi-people-fill text-info" aria-hidden="true"></i>
+          <!-- tile: User IDs -->
+          <div class="col-6 col-sm-4 col-md-2 d-flex">
+            <div class="card sx-status-tile h-100 w-100 border flex-fill">
+              <div class="card-body d-flex gap-3 align-items-center p-3">
+                <i class="bi bi-people-fill text-info fs-3" aria-hidden="true"></i>
                 <div>
                   <div class="small text-secondary">User IDs</div>
-                  <div class="fw-bold sx-mono sx-status-val">${escapeHtml(stats.totalUserIds)}</div>
+                  <div class="fw-bold sx-mono sx-stat-num">${escapeHtml(stats.totalUserIds)}</div>
                 </div>
               </div>
             </div>
+          </div>
 
-            <div class="col-6 col-sm-4 col-md-2 d-flex">
-              <div class="flex-fill d-flex align-items-center gap-3 rounded sx-status-tile" data-key="totalVerifiedUserIds">
-                <i class="bi bi-person-check text-success" aria-hidden="true"></i>
+          <!-- tile: Verified UIDs -->
+          <div class="col-6 col-sm-4 col-md-2 d-flex">
+            <div class="card sx-status-tile h-100 w-100 border flex-fill">
+              <div class="card-body d-flex gap-3 align-items-center p-3">
+                <i class="bi bi-person-check text-success fs-3" aria-hidden="true"></i>
                 <div>
                   <div class="small text-secondary">Verified UIDs</div>
-                  <div class="fw-bold sx-mono sx-status-val">${escapeHtml(stats.totalVerifiedUserIds)}</div>
+                  <div class="fw-bold sx-mono sx-stat-num">${escapeHtml(stats.totalVerifiedUserIds)}</div>
                 </div>
               </div>
             </div>
+          </div>
 
-            <div class="col-6 col-sm-4 col-md-2 d-flex">
-              <div class="flex-fill d-flex align-items-center gap-3 rounded sx-status-tile" data-key="totalUnverifiedUserIds">
-                <i class="bi bi-person-x text-warning" aria-hidden="true"></i>
+          <!-- tile: Unverified UIDs -->
+          <div class="col-6 col-sm-4 col-md-2 d-flex">
+            <div class="card sx-status-tile h-100 w-100 border flex-fill">
+              <div class="card-body d-flex gap-3 align-items-center p-3">
+                <i class="bi bi-person-x text-warning fs-3" aria-hidden="true"></i>
                 <div>
                   <div class="small text-secondary">Unverified UIDs</div>
-                  <div class="fw-bold sx-mono sx-status-val">${escapeHtml(stats.totalUnverifiedUserIds)}</div>
+                  <div class="fw-bold sx-mono sx-stat-num">${escapeHtml(stats.totalUnverifiedUserIds)}</div>
                 </div>
               </div>
             </div>
+          </div>
 
-            <div class="col-6 col-sm-4 col-md-2 d-flex align-items-center">
-              <button id="sx-refresh-stats" class="btn btn-outline-secondary btn-sm ms-auto">
+          <!-- manual refresh -->
+          <div class="col-6 col-sm-4 col-md-2 d-flex align-items-center">
+            <div class="w-100 d-flex justify-content-end">
+              <button id="sx-refresh-stats" class="btn btn-outline-secondary btn-sm">
                 <i class="bi bi-arrow-clockwise"></i> Refresh
               </button>
             </div>
           </div>
         </div>
       </div>
-    `;
+    </div>
+  `;
 
-    try {
-      const tiles = container.querySelectorAll('.sx-status-tile');
-      tiles.forEach(tile => {
-        const key = tile.dataset.key;
-        const newVal = stats && stats[key];
-        const oldVal = prev && prev[key];
-        if (oldVal !== undefined && String(oldVal) !== String(newVal)) {
-          tile.classList.add('sx-pulse');
-          setTimeout(() => tile.classList.remove('sx-pulse'), 1000);
-        }
-      });
-    } catch (e) {}
-
-    const refreshBtn = container.querySelector('#sx-refresh-stats');
-    if (refreshBtn) {
-      refreshBtn.addEventListener('click', async (e) => {
-        refreshBtn.disabled = true;
-        refreshBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>Refreshing…';
-        try {
-          const result = await fetchStats();
-          renderStatus(container, result);
-        } catch (err) {
-          console.error('Manual refresh failed', err);
-        } finally {
-          setTimeout(() => { refreshBtn.disabled = false; refreshBtn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Refresh'; }, 600);
-        }
-      });
-    }
+  // pulse tiles whose numeric value has changed
+  try {
+    const keyOrder = ['totalKeys','keysWithVerified','totalUserIds','totalVerifiedUserIds','totalUnverifiedUserIds'];
+    const tiles = container.querySelectorAll('.sx-status-tile');
+    tiles.forEach((tile, idx) => {
+      const k = keyOrder[idx];
+      const oldVal = prev && prev[k];
+      const newVal = stats && stats[k];
+      if (oldVal !== undefined && String(oldVal) !== String(newVal)) {
+        tile.classList.add('sx-pulse');
+        setTimeout(() => tile.classList.remove('sx-pulse'), 1000);
+      }
+    });
+  } catch (e) {
+    /* ignore */
   }
+
+  // manual refresh wiring
+  const refreshBtn = container.querySelector('#sx-refresh-stats');
+  if (refreshBtn) {
+    refreshBtn.addEventListener('click', async (e) => {
+      refreshBtn.disabled = true;
+      refreshBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>Refreshing…';
+      try {
+        const result = await fetchStats();
+        renderStatus(container, result);
+      } catch (err) {
+        console.error('Manual refresh failed', err);
+      } finally {
+        setTimeout(() => { refreshBtn.disabled = false; refreshBtn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Refresh'; }, 600);
+      }
+    });
+  }
+}
 
   function setStatusLoading(container, isLoading) {
     if (!container) return;
