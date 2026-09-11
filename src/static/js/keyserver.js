@@ -8,18 +8,12 @@
  *
  * Expects Bootstrap 5.3's JS bundle to already be loaded (for the Toast
  * component). No other dependencies.
- *
- * Markup contract (see demo index.html):
- *   <form id="sx-lookup-form">      input[name=email], button[type=submit]
- *   <div  id="sx-lookup-result">    populated with the result / not-found state
- *   <form id="sx-upload-form">      textarea[name=publicKeyArmored], button[type=submit]
- *   <form id="sx-remove-form">      input[name=identifier], button[type=submit]
- *   <div  id="sx-toast-container">  toasts are appended here
  */
 (function () {
   'use strict';
 
   const API_BASE = document.documentElement.dataset.apiBase || '/api/v1/key';
+  const STATS_ENDPOINT = document.documentElement.dataset.apiStats || '/api/v1/stats';
 
   // ---------------------------------------------------------------------
   // Small helpers
@@ -117,6 +111,102 @@
       throw err;
     }
     return data;
+  }
+
+  // ---------------------------------------------------------------------
+  // Status / Stats: GET /api/v1/stats
+  // ---------------------------------------------------------------------
+  function renderStatus(container, stats) {
+    if (!container) return;
+    // A Bootstrap card matching the existing theme
+    container.innerHTML = `
+      <div class="card bg-body-secondary border">
+        <div class="card-body">
+          <h5 class="mb-3">Service status</h5>
+          <div class="row g-3 align-items-center">
+            <div class="col-6 col-md-2">
+              <div class="text-secondary small">Total keys</div>
+              <div class="sx-mono h5 mb-0">${escapeHtml(stats.totalKeys)}</div>
+            </div>
+            <div class="col-6 col-md-2">
+              <div class="text-secondary small">Keys w/ verified</div>
+              <div class="sx-mono h5 mb-0">${escapeHtml(stats.keysWithVerified)}</div>
+            </div>
+            <div class="col-6 col-md-2">
+              <div class="text-secondary small">User IDs</div>
+              <div class="sx-mono h5 mb-0">${escapeHtml(stats.totalUserIds)}</div>
+            </div>
+            <div class="col-6 col-md-2">
+              <div class="text-secondary small">Verified UIDs</div>
+              <div class="sx-mono h5 mb-0">${escapeHtml(stats.totalVerifiedUserIds)}</div>
+            </div>
+            <div class="col-6 col-md-2">
+              <div class="text-secondary small">Unverified UIDs</div>
+              <div class="sx-mono h5 mb-0">${escapeHtml(stats.totalUnverifiedUserIds)}</div>
+            </div>
+            <div class="col-12 col-md-2 text-md-end">
+              <div class="text-secondary small">Updated</div>
+              <div class="h6 mb-0">${escapeHtml(new Date(stats.now || Date.now()).toLocaleTimeString())}</div>
+            </div>
+          </div>
+        </div>
+      </div> `;
+  }
+
+  function setStatusLoading(container, isLoading) {
+    if (!container) return;
+    if (isLoading) {
+      container.innerHTML = `
+        <div class="card bg-body-secondary border">
+          <div class="card-body">
+            <div class="d-flex gap-2 align-items-center">
+              <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+              <div class="text-secondary">Loading server statistics…</div>
+            </div>
+          </div>
+        </div>`;
+    }
+  }
+
+  async function fetchStats() {
+    const url = new URL(STATS_ENDPOINT, window.location.origin);
+    const res = await fetch(url.toString(), { method: 'GET' });
+    const text = await res.text();
+    let data = null;
+    if (text) { try { data = JSON.parse(text); } catch (_) { data = null; } }
+    if (!res.ok) {
+      const message = (data && (data.message || data.error)) || res.statusText || 'Failed to fetch stats';
+      const err = new Error(message);
+      err.status = res.status;
+      throw err;
+    }
+    // Keep compatibility: if server returns { ok: true, stats: {...}, now: ... }
+    if (data && data.stats) return { ...data.stats, now: data.now || new Date().toISOString() };
+    return { ...data, now: new Date().toISOString() };
+  }
+
+  function initStatus() {
+    const container = document.getElementById('sx-status');
+    if (!container) return;
+    // initial load + periodic refresh
+    async function loadAndRender() {
+      try {
+        setStatusLoading(container, true);
+        const result = await fetchStats();
+        renderStatus(container, result);
+      } catch (err) {
+        container.innerHTML = `
+          <div class="card bg-body-secondary border">
+            <div class="card-body">
+              <div class="text-danger">Failed to load server statistics</div>
+            </div>
+          </div>`;
+        console.error('stats error', err);
+      }
+    }
+    loadAndRender();
+    // refresh every 60s (adjust if needed)
+    setInterval(loadAndRender, 60000);
   }
 
   // ---------------------------------------------------------------------
@@ -276,5 +366,6 @@
     initLookupForm();
     initUploadForm();
     initRemoveForm();
+    initStatus(); // initialize the status card
   });
 })();
