@@ -1,0 +1,11 @@
+{
+  "key_not_found": "Clave no encontrada",
+  "removal_success": "Dirección de correo electrónico {{email}} eliminada del directorio de claves",
+  "verify_key_comment": "Servidor de claves StoreHex\nUtilice un cliente PGP compatible como Mailvelope para descifrar el mensaje y haga clic en el enlace",
+  "verify_key_subject": "Verifique su dirección de correo electrónico",
+  "verify_key_text": "Hola {email},\n\npor favor, verifique su dirección de correo electrónico {email} haciendo clic en el siguiente enlace:\n\n{link}\n\nDespués de verificar su dirección de correo electrónico, su clave pública estará disponible en nuestro directorio de claves.\n\nPuede encontrar más información en {host}.\n\nSaludos del equipo de StoreHex",
+  "verify_removal_subject": "Verificar eliminación de clave",
+  "verify_removal_text": "Hola {email},\n\npor favor, verifique la eliminación de su dirección de correo electrónico {email} de nuestro servidor de claves ({host}) haciendo clic en el siguiente enlace:\n\n{link}\n\nSaludos del equipo de StoreHex",
+  "verify_success_header": "Dirección de correo electrónico {{email}} verificada con éxito",
+  "verify_success_link": "Su clave pública OpenPGP ya está disponible en el siguiente enlace:"
+}
