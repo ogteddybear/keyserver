@@ -1,0 +1,11 @@
+{
+  "key_not_found": "キーが見つかりません",
+  "removal_success": "メールアドレス {{email}} がキーディレクトリから削除されました",
+  "verify_key_comment": "StoreHex キーサーバー\nMailvelopeなどの互換性のあるPGPクライアントを使用してメッセージを復号化し、リンクをクリックしてください",
+  "verify_key_subject": "メールアドレスの確認",
+  "verify_key_text": "{email} 様、\n\n以下のリンクをクリックして、メールアドレス {email} を確認してください：\n\n{link}\n\nメールアドレスの確認後、公開鍵がキーディレクトリで利用可能になります。\n\n詳細については {host} をご覧ください。\n\nStoreHexチームより",
+  "verify_removal_subject": "キー削除の確認",
+  "verify_removal_text": "{email} 様、\n\n以下のリンクをクリックして、キーサーバー ({host}) からのメールアドレス {email} の削除を確認してください：\n\n{link}\n\nStoreHexチームより",
+  "verify_success_header": "メールアドレス {{email}} が正常に確認されました",
+  "verify_success_link": "お客様の公開OpenPGPキーは、以下のリンクからご利用いただけます："
+}
