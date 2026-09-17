@@ -1,0 +1,11 @@
+{
+  "key_not_found": "找不到密钥",
+  "removal_success": "电子邮件地址 {{email}} 已从密钥目录中删除",
+  "verify_key_comment": "StoreHex 密钥服务器\n请使用兼容的 PGP 客户端（如 Mailvelope）解密邮件并点击链接",
+  "verify_key_subject": "验证您的电子邮件地址",
+  "verify_key_text": "您好 {email}，\n\n请点击以下链接验证您的电子邮件地址 {email}：\n\n{link}\n\n验证电子邮件地址后，您的公钥将在我们的密钥目录中可用。\n\n您可以在 {host} 找到更多信息。\n\nStoreHex 团队敬上",
+  "verify_removal_subject": "验证密钥删除",
+  "verify_removal_text": "您好 {email}，\n\n请点击以下链接验证从我们的密钥服务器 ({host}) 中删除您的电子邮件地址 {email}：\n\n{link}\n\nStoreHex 团队敬上",
+  "verify_success_header": "电子邮件地址 {{email}} 验证成功",
+  "verify_success_link": "您的公开 OpenPGP 密钥现在可通过以下链接获取："
+}
